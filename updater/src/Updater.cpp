@@ -309,7 +309,6 @@ void Updater::copyTreeReplace(const std::string& formFir, const std::string& toD
 
 Updater::CheckResult Updater::checkLatest(std::string* outLocal,
                                           std::string* outRemote) {
-    // use existing private helpers
     auto latest = fetchLatestRelease();
     std::string remote = trimLeadingV(latest.tag);
     std::string local  = readLocalVersion();

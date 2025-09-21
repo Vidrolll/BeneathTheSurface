@@ -13,6 +13,17 @@ add_executable(${GAME_TARGET}
         include/util/Input.h
 )
 
+target_compile_definitions(BeneathTheSurface PRIVATE
+        $<$<CONFIG:Release>:ENABLE_AUTO_UPDATE>
+)
+
+if (MINGW)
+    target_link_options(BeneathTheSurface PRIVATE
+            $<$<CONFIG:Debug>:-mconsole>
+            $<$<CONFIG:Release>:-mwindows>
+    )
+endif()
+
 target_compile_features(${GAME_TARGET} PRIVATE cxx_std_20)
 
 target_include_directories(${GAME_TARGET}

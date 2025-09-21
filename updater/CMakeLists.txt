@@ -11,9 +11,22 @@ target_include_directories(updater_lib
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(updater
+# to this:
+add_executable(updater WIN32
         src/main_updater.cpp
 )
+
+if (MINGW)
+    # belt-and-suspenders for MinGW
+    target_link_options(updater PRIVATE -mwindows)
+endif()
+
+# (optional) keep a console in Debug builds only:
+if (MINGW)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(updater PRIVATE -mconsole)
+    endif()
+endif()
 
 target_compile_features(updater PRIVATE cxx_std_20)
 

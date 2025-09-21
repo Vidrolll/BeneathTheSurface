@@ -1,4 +1,7 @@
-﻿// src/updater_main.cpp
+﻿//
+// Created by Caden Vize on 9/21/2025.
+//
+
 #include "Updater.h"
 #include <iostream>
 #include <string>
@@ -17,7 +20,6 @@ static void printUsage(const char* argv0) {
         "[--check-only] [--relaunch <exe_path>]\n";
 }
 
-// Exit codes for soft-check
 enum Exit {
     OK = 0,
     USAGE = 1,
@@ -73,14 +75,11 @@ int main(int argc, char** argv) {
             }
         }
 
-
-        // Full update path
         bool updated = u.run();
         if (updated) {
             std::cout << "Updated to " << u.getRemoteVersion() << " via asset '" << u.getPickedAssetName() << "'.\n";
 #ifdef _WIN32
             if (!relaunchPath.empty()) {
-                // Relaunch game
                 std::wstring cmd = L"\"" + std::wstring(relaunchPath.begin(), relaunchPath.end()) + L"\"";
                 STARTUPINFOW si{}; si.cb = sizeof(si);
                 PROCESS_INFORMATION pi{};

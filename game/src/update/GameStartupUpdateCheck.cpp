@@ -1,4 +1,7 @@
-﻿// game/src/util/GameStartupUpdateCheck.cpp
+﻿//
+// Created by Caden Vize on 9/21/2025.
+//
+
 #include "update/GameStartupUpdateCheck.h"
 
 #include <optional>
@@ -14,51 +17,45 @@
 #endif
 
 namespace {
+    constexpr wchar_t kRepo[]        = L"Vidrolll/BeneathTheSurface";
+    constexpr wchar_t kAssetRegex[]  = L"BeneathTheSurface-.*\\.zip";
+    constexpr wchar_t kGameExeName[] = L"BeneathTheSurface.exe";
+    constexpr DWORD   kCheckTimeoutMs = 15000;
 
-// --- config you might want to tweak ---
-static constexpr wchar_t kRepo[]        = L"Vidrolll/BeneathTheSurface";
-static constexpr wchar_t kAssetRegex[]  = L"BeneathTheSurface-.*\\.zip";
-static constexpr wchar_t kGameExeName[] = L"BeneathTheSurface.exe";
-static constexpr DWORD   kCheckTimeoutMs = 15000; // give network time to respond
-// --------------------------------------
-
-// small helper to quote args for CreateProcess
 std::wstring Quote(const std::wstring& s) {
     return L"\"" + s + L"\"";
 }
 
 #ifdef _WIN32
-// Robust LocalAppData\BeneathTheSurface
 std::wstring ResolveInstallDir() {
     PWSTR path = nullptr;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path))) {
         std::wstring dir = std::wstring(path) + L"\\BeneathTheSurface";
         CoTaskMemFree(path);
         std::error_code ec;
-        std::filesystem::create_directories(dir, ec); // ignore errors
+        std::filesystem::create_directories(dir, ec);
         return dir;
     }
-    // fallback to env var
     if (wchar_t* env = _wgetenv(L"LOCALAPPDATA")) {
         std::wstring dir = std::wstring(env) + L"\\BeneathTheSurface";
         std::error_code ec;
         std::filesystem::create_directories(dir, ec);
         return dir;
     }
-    // last resort
     return LR"(C:\Users\Public\BeneathTheSurface)";
 }
 
-// run a child process, wait up to timeout, return exit code
 std::optional<DWORD> RunProcessGetExitCode(const std::wstring& cmd, DWORD timeoutMs) {
     STARTUPINFOW si{};
     si.cb = sizeof(si);
+    si.dwFlags |= STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
     PROCESS_INFORMATION pi{};
-    std::wstring mutableCmd = cmd; // CreateProcessW may modify this buffer
+    std::wstring mutableCmd = cmd;
 
     if (!CreateProcessW(
-            /*app*/ nullptr,
-            /*cmd*/ mutableCmd.data(),
+            nullptr,
+            mutableCmd.data(),
             nullptr, nullptr, FALSE,
             CREATE_NO_WINDOW,
             nullptr, nullptr, &si, &pi)) {
@@ -74,30 +71,28 @@ std::optional<DWORD> RunProcessGetExitCode(const std::wstring& cmd, DWORD timeou
         std::wcerr << L"[updater] check-only timed out\n";
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
-        return std::nullopt; // tell caller this wasn't a real "up to date"
+        return std::nullopt;
     }
 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
     return code;
 }
-#endif // _WIN32
+#endif
 
-} // namespace
+}
 
 bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDirArg) {
 #ifndef _WIN32
     (void)installDirArg;
-    return false; // no-op on non-windows
+    return false;
 #else
-    // choose caller-supplied dir or resolve default
     const std::wstring installDir = installDirArg.empty() ? ResolveInstallDir() : installDirArg;
     const std::wstring updaterExe = installDir + L"\\updater.exe";
 
     std::wcout << L"[updater] installDir = " << installDir << L"\n";
     std::wcout << L"[updater] updaterExe = " << updaterExe << L"\n";
 
-    // 1) quick check
     std::wstring checkCmd =
         Quote(updaterExe) + L" --repo " + kRepo +
         L" --install-dir " + Quote(installDir) +
@@ -110,19 +105,15 @@ bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDirArg) {
         return false;
     }
 
-    DWORD code = *codeOpt; // 11=update available, 10=up-to-date, 2=fail, 0=ok (for full runs)
+    DWORD code = *codeOpt;
     std::wcout << L"[updater] check-only exit code = " << code << L"\n";
 
-    if (code != 11) {
-        // not updating now
+    if (code != 11)
         return false;
-    }
 
-    // 2) user accepted (replace with real dialog if you want)
     bool userAccepted = true;
     if (!userAccepted) return false;
 
-    // 3) launch updater for real, ask it to relaunch the game when done
     std::wstring runCmd =
         Quote(updaterExe) + L" --repo " + kRepo +
         L" --install-dir " + Quote(installDir) +
@@ -134,9 +125,11 @@ bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDirArg) {
 
     STARTUPINFOW si{};
     si.cb = sizeof(si);
+    si.dwFlags |= STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
     PROCESS_INFORMATION pi{};
     std::wstring mutableCmd = runCmd;
-    if (!CreateProcessW(nullptr, mutableCmd.data(), nullptr, nullptr, FALSE, 0,
+    if (!CreateProcessW(nullptr, mutableCmd.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW,
                         nullptr, nullptr, &si, &pi)) {
         std::wcerr << L"[updater] failed to launch updater (CreateProcess): " << GetLastError() << L"\n";
         return false;
@@ -144,7 +137,6 @@ bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDirArg) {
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
 
-    // tell caller (main) to exit now so files aren't locked
     return true;
 #endif
 }

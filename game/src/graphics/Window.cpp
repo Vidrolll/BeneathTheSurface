@@ -1,7 +1,12 @@
 ﻿//
 // Created by Caden Vize on 9/21/2025.
 //
+
 #include "graphics/Window.h"
+
+#include <iostream>
+#include <ostream>
+
 #include "util/Input.h"
 
 #include <stdexcept>
@@ -13,7 +18,6 @@ Window::Window() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     monitor_ = glfwGetPrimaryMonitor();
@@ -32,9 +36,17 @@ Window::Window() {
 
     if (glewInit() != GLEW_OK) {
         throw std::runtime_error("Failed to initialize GLEW");
-    }
+    } glewExperimental = GL_TRUE;
 
-    glViewport(0, 0, width_, height_);
+    int fbw, fbh;
+    glfwGetFramebufferSize(window_, &fbw, &fbh);
+    glViewport(0, 0, fbw, fbh);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, width_, height_, 0, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 Window::~Window() {
@@ -44,7 +56,6 @@ Window::~Window() {
 
 void Window::run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glOrtho(0, width_, height_, 0, -1, 1);
     Input::init(window_);
     while (!glfwWindowShouldClose(window_)) {
         glClear(GL_COLOR_BUFFER_BIT);
