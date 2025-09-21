@@ -8,6 +8,6 @@
 #pragma once
 #include <string>
 
-bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDir);
+bool SoftUpdateCheckAndMaybeRun(const std::wstring& installDir = L"");
 
 #endif //BENEATHTHESURFACE_GAMESTARTUPUPDATECHECK_H

@@ -80,6 +80,8 @@ LatestReleaseInfo Updater::fetchLatestRelease() {
 
     CURL* curl = curl_easy_init();
     if (!curl) throw std::runtime_error("Failed to initialize curl");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "BeneathTheSurface-Updater/1.0");
+
 
     std::string body;
     struct curl_slist* headers = nullptr;
@@ -158,6 +160,7 @@ ReleaseAsset Updater::chooseAsset(const LatestReleaseInfo& rel) {
 void Updater::downloadToFile(const std::string& url, const std::string& outPath) {
     CURL* curl = curl_easy_init();
     if (!curl) throw std::runtime_error("Failed to initialize curl");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "BeneathTheSurface-Updater/1.0");
 
     ensureDir(fs::path(outPath).parent_path().string());
     std::ofstream out(outPath, std::ios::binary | std::ios::trunc);

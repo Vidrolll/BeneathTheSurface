@@ -29,3 +29,11 @@ target_link_libraries(updater PRIVATE updater_lib)
 target_include_directories(updater PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+# … your existing targets …
+
+if (WIN32)
+    # Embed version info + manifest (works with MinGW windres or MSVC’s rc.exe)
+    target_sources(updater PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/version.rc)
+endif()
+

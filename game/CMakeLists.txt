@@ -3,10 +3,14 @@
 set(GAME_TARGET BeneathTheSurface CACHE STRING "Beneath The Surface")
 
 add_executable(${GAME_TARGET}
-        src/main.cpp
+        src/Game.cpp
         ../updater/src/Updater.cpp
-        src/util/GameStartupUpdateCheck.cpp
-        include/util/GameStartupUpdateCheck.h
+        src/update/GameStartupUpdateCheck.cpp
+        include/update/GameStartupUpdateCheck.h
+        include/graphics/Window.h
+        include/Game.h
+        src/graphics/Window.cpp
+        include/util/Input.h
 )
 
 target_compile_features(${GAME_TARGET} PRIVATE cxx_std_20)
