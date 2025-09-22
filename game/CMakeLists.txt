@@ -11,6 +11,22 @@ add_executable(${GAME_TARGET}
         include/Game.h
         src/graphics/Window.cpp
         include/util/Input.h
+        include/math/Polygon.h
+        src/math/Polygon.cpp
+        include/graphics/Camera.h
+        include/graphics/Texture.h
+        include/util/Scene.h
+        include/math/AABB.h
+        src/util/Scene.cpp
+        include/util/Tile.h
+        include/tiles/TestTile.h
+        src/tiles/TestTile.cpp
+        src/graphics/Texture.cpp
+        include/util/Entity.h
+        include/math/SAT.h
+        include/entites/Player.h
+        src/entities/Player.cpp
+        include/util/Time.h
 )
 
 target_compile_definitions(BeneathTheSurface PRIVATE
@@ -35,6 +51,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 target_link_libraries(${GAME_TARGET}
         PRIVATE

@@ -9,6 +9,14 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/vec2.hpp>
+
+#include "graphics/Camera.h"
+
+struct gamecam {
+    static inline Camera cam;
+};
+
 class Window {
 public:
     Window();
@@ -22,6 +30,10 @@ protected:
     const GLFWvidmode* mode_;
     GLFWmonitor* monitor_;
     int width_, height_;
+    int fbw_, fbh_;
+
+    void setupView() const;
+    static void cleanupView();
 };
 
 #endif //BENEATHTHESURFACE_WINDOW_H
