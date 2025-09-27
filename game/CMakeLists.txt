@@ -27,6 +27,10 @@ add_executable(${GAME_TARGET}
         include/entites/Player.h
         src/entities/Player.cpp
         include/util/Time.h
+        include/graphics/Model.h
+        include/graphics/Shader.h
+        src/graphics/Shader.cpp
+        include/util/mouse_look.h
 )
 
 target_compile_definitions(BeneathTheSurface PRIVATE

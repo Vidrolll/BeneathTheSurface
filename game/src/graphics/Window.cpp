@@ -25,7 +25,9 @@ Window::Window() {
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     //glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
@@ -49,10 +51,14 @@ Window::Window() {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    glfwSetCursorPosCallback(window_, Input::cursorPosCallback);
 
     glfwGetFramebufferSize(window_, &fbw_, &fbh_);
     glViewport(0, 0, fbw_, fbh_);
@@ -63,20 +69,13 @@ Window::~Window() {
     glfwTerminate();
 }
 
-void Window::setupView() const {
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(&gamecam::cam.getPerspectiveMat(static_cast<float>(width_)/static_cast<float>(height_))[0][0]);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(&gamecam::cam.getViewMat()[0][0]);
+void Window::setupView(const GLuint shaderId) const {
+    glUseProgram(shaderId);
+    glm::mat4 proj = game::cam.getPerspectiveMat(static_cast<float>(width_)/static_cast<float>(height_));
+    glm::mat4 view = game::cam.getViewMat();
+    glUniformMatrix4fv(glGetUniformLocation(shaderId,"uProj"),1,GL_FALSE,&proj[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shaderId,"uView"),1,GL_FALSE,&view[0][0]);
 }
-
-void Window::cleanupView() {
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-}
-
 
 void Window::run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -93,9 +92,8 @@ void Window::run() {
 
         Input::update();
         update();
-        setupView();
+        setupView(game::shader.id());
         draw();
-        cleanupView();
         glfwSwapBuffers(window_);
         glfwPollEvents();
     }

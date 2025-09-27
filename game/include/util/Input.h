@@ -8,10 +8,24 @@
 #pragma once
 #include <array>
 #include <GLFW/glfw3.h>
+#include "util/mouse_look.h"
 
 class Input {
 public:
     static void init(GLFWwindow* w) { sWindow = w; }
+
+    static void cursorPosCallback(GLFWwindow* win, double x, double y) {
+        if (!gLookActive) { gLastX = x; gLastY = y; return; }
+        const double dx = x - gLastX;
+        const double dy = y - gLastY;
+        gLastX = x; gLastY = y;
+
+        // ignore wild spikes (alt-tab etc.)
+        if (fabs(dx) < 500.0 && fabs(dy) < 500.0) {
+            gAccumDX += static_cast<float>(dx);
+            gAccumDY += static_cast<float>(dy);
+        }
+    }
 
     // Call once per frame (before update): polls events and updates key buffers
     static void update() {

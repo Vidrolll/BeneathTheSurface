@@ -11,14 +11,17 @@
 
 #include <glm/vec2.hpp>
 
-#include "graphics/Camera.h"
+#include "Camera.h"
+#include "graphics/Shader.h"
 
-struct gamecam {
+struct game {
     static inline Camera cam;
+    static inline Shader shader{};
 };
 
 class Window {
 public:
+
     Window();
 
     virtual ~Window();
@@ -32,7 +35,7 @@ protected:
     int width_, height_;
     int fbw_, fbh_;
 
-    void setupView() const;
+    void setupView(GLuint) const;
     static void cleanupView();
 };
 

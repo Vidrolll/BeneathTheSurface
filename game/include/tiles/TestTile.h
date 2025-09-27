@@ -6,15 +6,10 @@
 #define BENEATHTHESURFACE_TESTTILE_H
 
 #include "util/Tile.h"
-#include "graphics/Texture.h"
+#include "graphics/Window.h"
 
 class TestTile final : public Tile {
-    GLint texture;
-
     using Tile::Tile;
-
-    TestTile();
-
     void update() override;
     void draw() override;
 };

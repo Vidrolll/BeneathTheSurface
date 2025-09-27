@@ -8,6 +8,8 @@
 #include "util/Scene.h"
 #include <iostream>
 
+#include <GL/glew.h>
+
 Polygon::Polygon(std::vector<glm::vec3> v, Tag)
        : vertices_(std::move(v)), transform_(1.0f) {
     directVertices();

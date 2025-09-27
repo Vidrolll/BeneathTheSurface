@@ -11,100 +11,57 @@
 #include "graphics/Texture.h"
 #include "util/Scene.h"
 
-GLint texture;
+GLuint texture;
 
 Scene scene;
 
 void Game::update() {
+    static bool look=false, first=true;
+    static double lastX=0, lastY=0;
+    if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT)==GLFW_PRESS) {
+        if (!look) {
+            look=true; first=true;
+            glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            if (glfwRawMouseMotionSupported()) glfwSetInputMode(window_, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        }
+        double x,y; glfwGetCursorPos(window_,&x,&y);
+        if (first) { lastX=x; lastY=y; first=false; }
+        float dx=float(x-lastX), dy=float(y-lastY);
+        lastX=x; lastY=y;
+        game::cam.addLookDelta(-dx, dy);   // ? uses the math above
+    } else if (look) {
+        look=false;
+        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        if (glfwRawMouseMotionSupported()) glfwSetInputMode(window_, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+    }
+
     if (Input::pressed(GLFW_KEY_ESCAPE))
         std::exit(0);
     float speed = (Input::down(GLFW_KEY_LEFT_SHIFT) ? 1.f : 10.f);
-    if (Input::down(GLFW_KEY_LEFT))
-        gamecam::cam.move({-speed,0,0});
-    if (Input::down(GLFW_KEY_RIGHT))
-        gamecam::cam.move({speed,0,0});
-    if (Input::down(GLFW_KEY_UP))
-        gamecam::cam.move({0,speed,0});
-    if (Input::down(GLFW_KEY_DOWN))
-        gamecam::cam.move({0,-speed,0});
+    float fwd = 0.f, str = 0.f;
+    if (Input::down(GLFW_KEY_W))    fwd += speed;
+    if (Input::down(GLFW_KEY_S))  fwd -= speed;
+    if (Input::down(GLFW_KEY_D)) str -= speed;
+    if (Input::down(GLFW_KEY_A))  str += speed;
+    game::cam.moveRelativeXZ(fwd, str);
     scene.update();
 }
 
-void drawTile(int x, int y) {
-    int tileSize = 100;
-    glColor3f(1.f, 1.f, 1.f);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glBegin(GL_POLYGON);
-    glTexCoord2i(0,0); glVertex3f(x*tileSize, y*tileSize, 0.f);
-    glTexCoord2i(1,0); glVertex3f(x*tileSize+tileSize, y*tileSize, 0.f);
-    glTexCoord2i(1,1); glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, 0.f);
-    glTexCoord2i(0,1); glVertex3f(x*tileSize, y*tileSize+tileSize, 0.f);
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
-    glColor3f(.0f, 1.0f, .0f);
-    glBegin(GL_POLYGON);
-    glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, 0.f);
-    glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, -tileSize);
-    glVertex3f(x*tileSize, y*tileSize+tileSize, -tileSize);
-    glVertex3f(x*tileSize, y*tileSize+tileSize, 0.f);
-    glEnd();
-    glColor3f(1.0f, .0f, .0f);
-    glBegin(GL_POLYGON);
-    glVertex3f(x*tileSize+tileSize, y*tileSize, 0.f);
-    glVertex3f(x*tileSize+tileSize, y*tileSize, -tileSize);
-    glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, -tileSize);
-    glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, 0.f);
-    glEnd();
-}
-
 void Game::draw() {
-    scene.draw();
-    //
-    // drawTile(1,1);
-    // drawTile(1,2);
-    // drawTile(2,1);
-    // drawTile(3,1);
-    // drawTile(4,1);
-    //
-    // glColor3f(0.f,0.f,1.f);
-    // glBegin(GL_POLYGON);
-    // glVertex3f(3*50, 2*50, -25.f);
-    // glVertex3f(3*50+50, 2*50, -25.f);
-    // glVertex3f(3*50+50, 2*50+100, -25.f);
-    // glVertex3f(3*50, 2*50+100, -25.f);
-    // glEnd();
-    //
-    // glColor3f(1.f,0.f,1.f);
-    // glBegin(GL_POLYGON);
-    // glVertex3f(50, 2*50, -50.f);
-    // glVertex3f(250, 2*50, -50.f);
-    // glVertex3f(250, 2*50+100, -50.f);
-    // glVertex3f(50, 2*50+100, -50.f);
-    // glEnd();
-    //
-    // glColor3f(1.0f, 0.f, 0.f);
-    // glBegin(GL_POLYGON);
-    // glVertex3f(-25.0f, -25.0f, -500.f);
-    // glVertex3f(25.0f, -25.0f, -500.f);
-    // glVertex3f(25.0f, 25.0f, -500.f);
-    // glVertex3f(-25.0f, 25.0f, -500.f);
-    // glEnd();
+    // std::cout << whiteTexture << "\n";
+    // glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 200.0f, -300.0f));
+    // m = glm::scale(m, glm::vec3(400.0f, 1.0f, 100.0f));
+    // if (!gQuad.vao || gQuad.indexCount==0) return;
+    // game::shader.use();
+    // game::shader.setMat4("uModel", m);
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, whiteTexture);
+    // game::shader.setInt("uTex", 0);
+    // glBindVertexArray(gQuad.vao);
+    // glDrawElements(GL_TRIANGLES, gQuad.indexCount, GL_UNSIGNED_INT, 0);
+    // glBindVertexArray(0);
 
-    // for (int x = 0; x < 100; x++) {
-    //     for (int y = 0; y < 100; y++) {
-    //         int tileSize = 10;
-    //         float color = (x+y) % 2 == 0 ? 1.0f : 0.0f;
-    //         glColor3f(color, color, color);
-    //         glBegin(GL_POLYGON);
-    //         glVertex3f(x*tileSize, y*tileSize, -50.f);
-    //         glVertex3f(x*tileSize+tileSize, y*tileSize, -50.f);
-    //         glVertex3f(x*tileSize+tileSize, y*tileSize+tileSize, -50.f);
-    //         glVertex3f(x*tileSize, y*tileSize+tileSize, -50.f);
-    //         glEnd();
-    //     }
-    // }
-    drawTile(5,5);
+    scene.draw();
 }
 
 int main() {
@@ -113,10 +70,26 @@ int main() {
         std::exit(0);
     }
 #endif
-
     Game game;
+
+    const std::string vertSrc = loadTextFile("resources/shaders/vertex/shader.vert");
+    const std::string fragSrc = loadTextFile("resources/shaders/fragment/shader.frag");
+
+    game::shader = {};
+    if (!game::shader.loadFromSource(vertSrc.c_str(), fragSrc.c_str())) {
+        throw std::runtime_error("Shader failed to compile/link");
+    }
+
+    GenWhiteTexture();
+
+    initQuadMesh();
+    std::cout << gQuad.indexCount << std::endl;
+
     texture = LoadTexture2D("resources/textures/block_sprite.png");
     scene = Scene();
+
+    scene.setup();
+
     game.run();
 
     return 0;
