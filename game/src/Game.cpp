@@ -28,7 +28,7 @@ void Game::update() {
         if (first) { lastX=x; lastY=y; first=false; }
         float dx=float(x-lastX), dy=float(y-lastY);
         lastX=x; lastY=y;
-        game::cam.addLookDelta(-dx, dy);   // ? uses the math above
+        game::cam.addLookDelta(-dx, dy);
     } else if (look) {
         look=false;
         glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
